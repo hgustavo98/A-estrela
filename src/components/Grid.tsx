@@ -19,7 +19,7 @@ const Grid: React.FC<GridProps> = ({
   const pathSet = new Set(pathPositions.map(([row, col]) => `${row},${col}`));
   
   return (
-    <div className="grid-container p-4 bg-gray-800 rounded-lg shadow-lg justify-center itens-center flex">
+    <div className="grid-container p-4 bg-blue-800/10 rounded-lg shadow-lg justify-center itens-center flex">
       <div className="grid grid-flow-row gap-0">
         {grid.map((row, rowIndex) => (
           <div key={rowIndex} className="flex">

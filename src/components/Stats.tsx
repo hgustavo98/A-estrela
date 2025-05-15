@@ -12,7 +12,7 @@ interface StatsProps {
 
 const Stats: React.FC<StatsProps> = ({ currentNode, stepsCount, pathFound }) => {
   return (
-    <div className="flex flex-col gap-2 p-4 bg-gray-800 rounded-lg shadow-lg text-white">
+    <div className="flex flex-col gap-2 p-4 bg-blue-800/10 rounded-lg shadow-lg text-white">
       <h3 className="text-xl font-bold mb-2">Estatísticas do Algoritmo</h3>
       
       <div className="grid grid-cols-2 gap-x-4 gap-y-2">

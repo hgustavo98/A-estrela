@@ -3,9 +3,10 @@ import Grid from './components/Grid';
 import Controls from './components/Controls';
 import Stats from './components/Stats';
 import Legend from './components/Legend';
-import { runPathfindingAlgorithm } from './utils/pathfinding';
 import { INITIAL_GRID, ANIMATION_SPEED } from './constants';
-import { IPathNode } from './types';
+
+// URL base do backend Flask
+const API_BASE = 'http://localhost:5000';
 
 function App() {
   const [grid] = useState(INITIAL_GRID);
@@ -25,18 +26,31 @@ function App() {
   });
   const [stepsCount, setStepsCount] = useState(0);
   const [pathFound, setPathFound] = useState(false);
-  
-  const [algorithmSteps, setAlgorithmSteps] = useState<IPathNode[]>([]);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
-  
+  const [error, setError] = useState<string | null>(null);
   const animationIntervalRef = useRef<number | null>(null);
-  
-  const handleReset = useCallback(() => {
+
+  // Função para atualizar o estado do nó atual a partir da resposta do backend
+  const updateFromNode = useCallback((node: any) => {
+    setCurrentPosition([node.row, node.col]);
+    setVisitedPositions(prev => {
+      const updated = new Set(prev);
+      updated.add(`${node.row},${node.col}`);
+      return updated;
+    });
+    setPathPositions(node.path ? node.path : []);
+    setCurrentNode({
+      position: [node.row, node.col],
+      distanceTraveled: node.distanceTraveled,
+      hasMagicFruit: node.hasMagicFruit
+    });
+    setStepsCount(prev => prev + 1);
+  }, []);
+
+  const handleReset = useCallback(async () => {
     if (animationIntervalRef.current) {
       clearInterval(animationIntervalRef.current);
       animationIntervalRef.current = null;
     }
-    
     setIsRunning(false);
     setIsPaused(false);
     setCurrentPosition(null);
@@ -49,89 +63,74 @@ function App() {
     });
     setStepsCount(0);
     setPathFound(false);
-    setAlgorithmSteps([]);
-    setCurrentStepIndex(0);
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
+      if (!res.ok) throw new Error('Servidor indisponível');
+      await res.json();
+    } catch (e) {
+      setError('Não foi possível conectar ao servidor Python.');
+    }
   }, []);
-  
-  const handleVisitNode = useCallback((node: IPathNode) => {
-    setCurrentPosition([node.row, node.col]);
-    setVisitedPositions(prev => {
-      const updated = new Set(prev);
-      updated.add(`${node.row},${node.col}`);
-      return updated;
-    });
-    setPathPositions(node.path.slice(0, -1) as [number, number][]);
-    setCurrentNode({
-      position: [node.row, node.col],
-      distanceTraveled: node.distanceTraveled,
-      hasMagicFruit: node.hasMagicFruit
-    });
-    setStepsCount(prev => prev + 1);
-  }, []);
-  
-  const handleFoundPath = useCallback((finalNode: IPathNode) => {
-    setPathPositions(finalNode.path as [number, number][]);
-    setPathFound(true);
-    setIsPaused(true);
-  }, []);
-  
-  const runAlgorithm = useCallback(() => {
-    handleReset();
-    const steps = runPathfindingAlgorithm(grid);
-    setAlgorithmSteps(steps);
-    setIsRunning(true);
-  }, [grid, handleReset]);
-  
-  const handleStep = useCallback(() => {
-    if (currentStepIndex < algorithmSteps.length) {
-      const node = algorithmSteps[currentStepIndex];
-      handleVisitNode(node);
-      
-      if (grid[node.row][node.col] === 'S') {
-        handleFoundPath(node);
+
+  const handleStart = useCallback(async () => {
+    await handleReset();
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/start`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grid }),
+      });
+      if (!res.ok) throw new Error('Servidor indisponível');
+      const data = await res.json();
+      if (data && data.node) {
+        updateFromNode(data.node);
+        setIsRunning(true);
+        setIsPaused(false);
+        setPathFound(false);
       }
-      
-      setCurrentStepIndex(prev => prev + 1);
+    } catch (e) {
+      setError('Não foi possível conectar ao servidor Python.');
     }
-  }, [currentStepIndex, algorithmSteps, handleVisitNode, handleFoundPath, grid]);
-  
-  const handleStart = useCallback(() => {
-    if (!isRunning) {
-      runAlgorithm();
-    } else {
-      setIsPaused(false);
+  }, [handleReset, updateFromNode, grid]);
+
+  const handleStep = useCallback(async () => {
+    if (!isRunning || pathFound) return;
+    setError(null);
+    try {
+      const res = await fetch(`${API_BASE}/api/step`, { method: 'POST' });
+      if (!res.ok) throw new Error('Servidor indisponível');
+      const data = await res.json();
+      if (data.status === 'found') {
+        setPathPositions(data.path);
+        setPathFound(true);
+        setIsPaused(true);
+        updateFromNode(data.node);
+      } else if (data.status === 'not_found') {
+        setIsPaused(true);
+        setIsRunning(false);
+      } else if (data.status === 'running' && data.node) {
+        updateFromNode(data.node);
+      }
+    } catch (e) {
+      setError('Não foi possível conectar ao servidor Python.');
     }
-  }, [isRunning, runAlgorithm]);
-  
+  }, [isRunning, pathFound, updateFromNode]);
+
   const handlePause = useCallback(() => {
     setIsPaused(true);
   }, []);
-  
+
+  // Animação automática dos passos
   useEffect(() => {
-    if (isRunning && !isPaused && algorithmSteps.length > 0) {
+    if (isRunning && !isPaused && !pathFound) {
       if (animationIntervalRef.current) {
         clearInterval(animationIntervalRef.current);
       }
-      
       animationIntervalRef.current = window.setInterval(() => {
-        if (currentStepIndex < algorithmSteps.length) {
-          const node = algorithmSteps[currentStepIndex];
-          handleVisitNode(node);
-          
-          if (grid[node.row][node.col] === 'S') {
-            handleFoundPath(node);
-            clearInterval(animationIntervalRef.current!);
-            animationIntervalRef.current = null;
-          }
-          
-          setCurrentStepIndex(prev => prev + 1);
-        } else {
-          clearInterval(animationIntervalRef.current!);
-          animationIntervalRef.current = null;
-          setIsPaused(true);
-        }
+        handleStep();
       }, ANIMATION_SPEED);
-      
       return () => {
         if (animationIntervalRef.current) {
           clearInterval(animationIntervalRef.current);
@@ -139,18 +138,10 @@ function App() {
         }
       };
     }
-  }, [
-    isRunning, 
-    isPaused, 
-    algorithmSteps, 
-    currentStepIndex, 
-    handleVisitNode, 
-    handleFoundPath,
-    grid
-  ]);
-  
+  }, [isRunning, isPaused, pathFound, handleStep]);
+
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 md:p-8">
+    <div className="min-h-screen bg-black text-white p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         <header className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-bold mb-2"> A-estrela</h1>
@@ -158,7 +149,6 @@ function App() {
             Observe como o algoritmo A* navega pelo grid para encontrar o caminho ideal
           </p>
         </header>
-        
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2">
             <Grid 
@@ -167,7 +157,6 @@ function App() {
               visitedPositions={visitedPositions}
               pathPositions={pathPositions}
             />
-            
             <div className="mt-4">
               <Controls 
                 isRunning={isRunning}
@@ -179,19 +168,18 @@ function App() {
               />
             </div>
           </div>
-          
           <div className="space-y-6">
             <Stats 
               currentNode={currentNode}
               stepsCount={stepsCount}
               pathFound={pathFound}
             />
-            
           </div>
           <div className="lg:col-span-2">
             <Legend />
           </div>
         </div>
+        {error && <div style={{color: 'red'}}>{error}</div>}
       </div>
     </div>
   );

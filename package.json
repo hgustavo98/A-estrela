@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "run-algorithm": "ts-node d:\\Estrela\\runAlgorithm.ts",
-    "start-all": "npm install && npm run dev && npm run run-algorithm"
+    "start-all": "npm run dev && npm run run-algorithm"
   },
   "dependencies": {
     "lucide-react": "^0.344.0",

@@ -1,15 +1,35 @@
-import { exec } from 'child_process';
+// Inicie a busca
+export async function startBusca() {
+  try {
+    const res = await fetch('http://localhost:5000/api/start', { method: 'POST' });
+    if (!res.ok) throw new Error('Servidor indisponível');
+    const data = await res.json();
+    return data;
+  } catch (e) {
+    return { error: 'Não foi possível conectar ao servidor Python.' };
+  }
+}
 
-const pythonScript = 'd:\\Estrela\\algorithm.py';
+// Dê um passo
+export async function proximoPasso() {
+  try {
+    const res = await fetch('http://localhost:5000/api/step', { method: 'POST' });
+    if (!res.ok) throw new Error('Servidor indisponível');
+    const data = await res.json();
+    return data;
+  } catch (e) {
+    return { error: 'Não foi possível conectar ao servidor Python.' };
+  }
+}
 
-exec(`python ${pythonScript}`, (error, stdout, stderr) => {
-    if (error) {
-        console.error(`Erro ao executar o script Python: ${error.message}`);
-        return;
-    }
-    if (stderr) {
-        console.error(`Erro no script Python: ${stderr}`);
-        return;
-    }
-    console.log(`Saída do script Python:\n${stdout}`);
-});
+// Resete a busca
+export async function resetBusca() {
+  try {
+    const res = await fetch('http://localhost:5000/api/reset', { method: 'POST' });
+    if (!res.ok) throw new Error('Servidor indisponível');
+    const data = await res.json();
+    return data;
+  } catch (e) {
+    return { error: 'Não foi possível conectar ao servidor Python.' };
+  }
+}

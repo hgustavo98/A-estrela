@@ -34,12 +34,13 @@ export const CELL_TYPES: Record<CellType, { name: string; color: string; descrip
 };
 
 export const INITIAL_GRID: CellType[][] = [
-  ['C', '_', '_', '_', 'B', '_'],
+  ['_', '_', '_', 'F', 'B', 'S'],
   ['_', 'B', '_', '_', '_', '_'],
-  ['_', '_', 'F', '_', '_', '_'],
+  ['_', 'C', 'F', '_', '_', '_'],
   ['_', '_', '_', 'B', 'B', '_'],
   ['_', '_', '_', 'A', '_', '_'],
-  ['_', '_', '_', '_', '_', 'S'],
+  ['_', '_', '_', '_', '_', '_'],
 ];
 
 export const ANIMATION_SPEED = 600; // ms
+

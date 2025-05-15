@@ -19,7 +19,7 @@ const Controls: React.FC<ControlsProps> = ({
   onReset
 }) => {
   return (
-    <div className="flex flex-col md:flex-row items-center gap-4 p-4 bg-gray-800 rounded-lg shadow-lg itens-center justify-center">
+    <div className="flex flex-col md:flex-row items-center gap-4 p-4 bg-blue-800/10 rounded-lg shadow-lg itens-center justify-center">
       <div className="flex gap-2">
         {!isRunning || isPaused ? (
           <button 

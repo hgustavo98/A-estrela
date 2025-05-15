@@ -4,7 +4,7 @@ import { CellType } from '../types';
 
 const Legend: React.FC = () => {
   return (
-    <div className="p-4 bg-gray-800 rounded-lg shadow-lg text-white w-full">
+    <div className="p-4 bg-blue-800/10 rounded-lg shadow-lg text-white w-full">
       <h3 className="text-xl font-bold mb-3">Legenda</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {(Object.entries(CELL_TYPES) as [CellType, typeof CELL_TYPES[CellType]][]).map(

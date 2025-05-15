@@ -15,7 +15,7 @@ const Cell: React.FC<CellProps> = ({ cell, isCurrentPosition, isInPath, isVisite
   
   let cellClasses = `w-12 h-12 m-1 flex items-center justify-center rounded-md 
                     transition-all duration-300 transform relative
-                    ${cellInfo.color} text-white font-bold
+                    ${cellInfo.color} text-black font-bold
                     shadow-md hover:shadow-lg`;
 
   if (isCurrentPosition) {
