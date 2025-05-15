@@ -25,9 +25,8 @@ function App() {
   });
   const [stepsCount, setStepsCount] = useState(0);
   const [pathFound, setPathFound] = useState(false);
-  
-  const [algorithmSteps, setAlgorithmSteps] = useState<IPathNode[]>([]);
-  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [foundPath, setFoundPath] = useState<[number, number][]>([]);
+  const [pathIndex, setPathIndex] = useState(0);
   
   const animationIntervalRef = useRef<number | null>(null);
   
@@ -49,111 +48,70 @@ function App() {
     });
     setStepsCount(0);
     setPathFound(false);
-    setAlgorithmSteps([]);
-    setCurrentStepIndex(0);
+    setFoundPath([]);
+    setPathIndex(0);
   }, []);
-  
-  const handleVisitNode = useCallback((node: IPathNode) => {
-    setCurrentPosition([node.row, node.col]);
-    setVisitedPositions(prev => {
-      const updated = new Set(prev);
-      updated.add(`${node.row},${node.col}`);
-      return updated;
-    });
-    setPathPositions(node.path.slice(0, -1) as [number, number][]);
-    setCurrentNode({
-      position: [node.row, node.col],
-      distanceTraveled: node.distanceTraveled,
-      hasMagicFruit: node.hasMagicFruit
-    });
-    setStepsCount(prev => prev + 1);
-  }, []);
-  
+
   const handleFoundPath = useCallback((finalNode: IPathNode) => {
-    setPathPositions(finalNode.path as [number, number][]);
+    setFoundPath(finalNode.path as [number, number][]);
     setPathFound(true);
     setIsPaused(true);
   }, []);
-  
+
   const runAlgorithm = useCallback(() => {
     handleReset();
     const steps = runPathfindingAlgorithm(grid);
-    setAlgorithmSteps(steps);
-    setIsRunning(true);
-  }, [grid, handleReset]);
-  
-  const handleStep = useCallback(() => {
-    if (currentStepIndex < algorithmSteps.length) {
-      const node = algorithmSteps[currentStepIndex];
-      handleVisitNode(node);
-      
-      if (grid[node.row][node.col] === 'S') {
-        handleFoundPath(node);
-      }
-      
-      setCurrentStepIndex(prev => prev + 1);
+    const finalNode = steps[steps.length - 1];
+    if (grid[finalNode.row][finalNode.col] === 'S') {
+      handleFoundPath(finalNode);
     }
-  }, [currentStepIndex, algorithmSteps, handleVisitNode, handleFoundPath, grid]);
-  
+  }, [grid, handleReset, handleFoundPath]);
+
   const handleStart = useCallback(() => {
     if (!isRunning) {
       runAlgorithm();
-    } else {
+      setIsRunning(true);
+    } else if (pathFound && isPaused) {
       setIsPaused(false);
     }
-  }, [isRunning, runAlgorithm]);
-  
+  }, [isRunning, pathFound, isPaused, runAlgorithm]);
+
   const handlePause = useCallback(() => {
     setIsPaused(true);
   }, []);
-  
+
   useEffect(() => {
-    if (isRunning && !isPaused && algorithmSteps.length > 0) {
+    if (isRunning && !isPaused && pathFound && pathIndex < foundPath.length) {
       if (animationIntervalRef.current) {
         clearInterval(animationIntervalRef.current);
       }
-      
+
       animationIntervalRef.current = window.setInterval(() => {
-        if (currentStepIndex < algorithmSteps.length) {
-          const node = algorithmSteps[currentStepIndex];
-          handleVisitNode(node);
-          
-          if (grid[node.row][node.col] === 'S') {
-            handleFoundPath(node);
+        setPathIndex(prev => {
+          const newIndex = prev + 1;
+          if (newIndex >= foundPath.length) {
             clearInterval(animationIntervalRef.current!);
-            animationIntervalRef.current = null;
+            return prev;
           }
-          
-          setCurrentStepIndex(prev => prev + 1);
-        } else {
-          clearInterval(animationIntervalRef.current!);
-          animationIntervalRef.current = null;
-          setIsPaused(true);
-        }
+          setCurrentPosition(foundPath[newIndex]);
+          setPathPositions(foundPath.slice(0, newIndex + 1));
+          return newIndex;
+        });
       }, ANIMATION_SPEED);
-      
+
       return () => {
         if (animationIntervalRef.current) {
           clearInterval(animationIntervalRef.current);
-          animationIntervalRef.current = null;
         }
       };
     }
-  }, [
-    isRunning, 
-    isPaused, 
-    algorithmSteps, 
-    currentStepIndex, 
-    handleVisitNode, 
-    handleFoundPath,
-    grid
-  ]);
-  
+  }, [isRunning, isPaused, pathFound, pathIndex, foundPath]);
+
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 md:p-8">
       <div className="max-w-4xl mx-auto">
         <header className="mb-8 text-center">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2"> A-estrela</h1>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">A-estrela</h1>
           <p className="text-gray-300">
             Observe como o algoritmo A* navega pelo grid para encontrar o caminho ideal
           </p>
@@ -174,7 +132,13 @@ function App() {
                 isPaused={isPaused}
                 onStart={handleStart}
                 onPause={handlePause}
-                onStep={handleStep}
+                onStep={() => {
+                  if (pathFound && pathIndex < foundPath.length - 1) {
+                    setPathIndex(prev => prev + 1);
+                    setCurrentPosition(foundPath[pathIndex + 1]);
+                    setPathPositions(foundPath.slice(0, pathIndex + 2));
+                  }
+                }}
                 onReset={handleReset}
               />
             </div>
@@ -182,11 +146,14 @@ function App() {
           
           <div className="space-y-6">
             <Stats 
-              currentNode={currentNode}
-              stepsCount={stepsCount}
+              currentNode={{
+                position: currentPosition,
+                distanceTraveled: pathIndex,
+                hasMagicFruit: pathFound && grid[foundPath[pathIndex]?.[0] ?? 0][foundPath[pathIndex]?.[1] ?? 0] === 'F'
+              }}
+              stepsCount={pathIndex}
               pathFound={pathFound}
             />
-            
           </div>
           <div className="lg:col-span-2">
             <Legend />
