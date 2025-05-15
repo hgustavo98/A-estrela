@@ -11,6 +11,7 @@ export interface IPathNode {
   col: number;
   distanceTraveled: number;
   hasMagicFruit: boolean;
+  usedMagicFruit: boolean;
   estimatedTotalCost: number;
   path: number[][];
 }

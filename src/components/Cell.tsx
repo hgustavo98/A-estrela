@@ -19,9 +19,9 @@ const Cell: React.FC<CellProps> = ({ cell, isCurrentPosition, isInPath, isVisite
                     shadow-md hover:shadow-lg`;
 
   if (isCurrentPosition) {
-    cellClasses += ' bg-cyan-500/60 scale-105 z-10 shadow-lg';
+    cellClasses += ' bg-cyan-500/50 scale-105 z-10 shadow-lg';
   } else if (isInPath) {
-    cellClasses += ' bg-cyan-500/60';
+    cellClasses += ' bg-cyan-500/50';
   }
 
   if (isVisited && !isInPath && !isCurrentPosition) {
