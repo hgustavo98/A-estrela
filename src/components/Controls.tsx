@@ -1,0 +1,65 @@
+import React from 'react';
+import { Play, Pause, SkipForward, RotateCcw } from 'lucide-react';
+
+interface ControlsProps {
+  isRunning: boolean;
+  isPaused: boolean;
+  onStart: () => void;
+  onPause: () => void;
+  onStep: () => void;
+  onReset: () => void;
+}
+
+const Controls: React.FC<ControlsProps> = ({
+  isRunning,
+  isPaused,
+  onStart,
+  onPause,
+  onStep,
+  onReset
+}) => {
+  return (
+    <div className="flex flex-col md:flex-row items-center gap-4 p-4 bg-gray-800 rounded-lg shadow-lg itens-center justify-center">
+      <div className="flex gap-2">
+        {!isRunning || isPaused ? (
+          <button 
+            onClick={onStart}
+            className="flex items-center gap-2 py-2 px-4 bg-green-600 hover:bg-green-700 text-white rounded-md
+                      transition-colors duration-200"
+          >
+            <Play size={18} /> {isPaused ? 'Continuar' : 'Iniciar'}
+          </button>
+        ) : (
+          <button 
+            onClick={onPause}
+            className="flex items-center gap-2 py-2 px-4 bg-yellow-600 hover:bg-yellow-700 text-white rounded-md
+                      transition-colors duration-200"
+          >
+            <Pause size={18} /> Pausar
+          </button>
+        )}
+        
+        <button 
+          onClick={onStep}
+          disabled={!isPaused && isRunning}
+          className={`flex items-center gap-2 py-2 px-4 rounded-md transition-colors duration-200 
+                    ${!isPaused && isRunning 
+                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                      : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
+        >
+          <SkipForward size={18} /> Passo
+        </button>
+        
+        <button 
+          onClick={onReset}
+          className="flex items-center gap-2 py-2 px-4 bg-red-600 hover:bg-red-700 text-white rounded-md
+                    transition-colors duration-200"
+        >
+          <RotateCcw size={18} /> Reiniciar
+        </button>
+      </div>
+    </div>
+  );
+}
+
+export default Controls
