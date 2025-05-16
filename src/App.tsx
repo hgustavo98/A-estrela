@@ -32,7 +32,15 @@ function App() {
   const animationIntervalRef = useRef<number | null>(null);
 
   // Função para atualizar o estado do nó atual a partir da resposta do backend
-  const updateFromNode = useCallback((node: any) => {
+  type NodeType = {
+    row: number;
+    col: number;
+    distanceTraveled: number;
+    hasMagicFruit: boolean;
+    path?: [number, number][];
+  };
+
+  const updateFromNode = useCallback((node: NodeType) => {
     setCurrentPosition([node.row, node.col]);
     setVisitedPositions(prev => {
       const updated = new Set(prev);
@@ -70,7 +78,7 @@ function App() {
       const res = await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
       if (!res.ok) throw new Error('Servidor indisponível');
       await res.json();
-    } catch (e) {
+    } catch {
       setError('Não foi possível conectar ao servidor Python.');
     }
   }, []);
@@ -92,7 +100,7 @@ function App() {
         setIsPaused(false);
         setPathFound(false);
       }
-    } catch (e) {
+    } catch {
       setError('Não foi possível conectar ao servidor Python.');
     }
   }, [handleReset, updateFromNode, grid]);
@@ -115,7 +123,7 @@ function App() {
       } else if (data.status === 'running' && data.node) {
         updateFromNode(data.node);
       }
-    } catch (e) {
+    } catch {
       setError('Não foi possível conectar ao servidor Python.');
     }
   }, [isRunning, pathFound, updateFromNode]);
@@ -181,7 +189,7 @@ function App() {
             <Legend />
           </div>
         </div>
-        {error && <div style={{color: 'red'}}>{error}</div>}
+        {error && <div className="error-message">{error}</div>}
       </div>
     </div>
   );

@@ -5,7 +5,7 @@ export async function startBusca() {
     if (!res.ok) throw new Error('Servidor indisponível');
     const data = await res.json();
     return data;
-  } catch (e) {
+  } catch {
     return { error: 'Não foi possível conectar ao servidor Python.' };
   }
 }
@@ -17,7 +17,7 @@ export async function proximoPasso() {
     if (!res.ok) throw new Error('Servidor indisponível');
     const data = await res.json();
     return data;
-  } catch (e) {
+  } catch {
     return { error: 'Não foi possível conectar ao servidor Python.' };
   }
 }
@@ -29,7 +29,7 @@ export async function resetBusca() {
     if (!res.ok) throw new Error('Servidor indisponível');
     const data = await res.json();
     return data;
-  } catch (e) {
+  } catch {
     return { error: 'Não foi possível conectar ao servidor Python.' };
   }
 }

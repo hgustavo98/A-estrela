@@ -5,7 +5,7 @@ import { User, Flag, ShieldBan, Apple, PlayCircle, Shield } from 'lucide-react';
 
 const customLegend = [
   { key: 'C', name: 'Início', color: 'bg-indigo-600 hover:bg-indigo-700', description: 'Ponto inicial do personagem', icon: <PlayCircle size={20} /> },
-  { key: 'P', name: 'Personagem', color: 'bg-cyan-600', description: 'Posição atual do personagem', icon: <User size={20} /> },
+  { key: 'P', name: 'Personagem', color: 'bg-cyan-500', description: 'Posição atual do personagem e caminho percorrido', icon: <User size={20} /> },
   { key: 'S', name: 'Saída', color: 'bg-violet-600 hover:bg-violet-700', description: 'Objetivo final do personagem', icon: <Flag size={20} /> },
   { key: 'B', name: 'Barreira', color: 'bg-rose-600 hover:bg-rose-700', description: 'Barreira - precisa de fruta mágica para passar', icon: <ShieldBan size={20} /> },
   { key: 'A', name: 'Semi-barreira', color: 'bg-amber-500 hover:bg-amber-600', description: 'Passagem mais lenta (custo: 2)', icon: <Shield size={20} /> },

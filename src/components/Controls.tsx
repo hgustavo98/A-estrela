@@ -1,5 +1,5 @@
 import React from 'react';
-import { Play, Pause, SkipForward, RotateCcw } from 'lucide-react';
+import { Play, Pause, RotateCcw } from 'lucide-react';
 
 interface ControlsProps {
   isRunning: boolean;
@@ -15,7 +15,7 @@ const Controls: React.FC<ControlsProps> = ({
   isPaused,
   onStart,
   onPause,
-  onStep,
+ 
   onReset
 }) => {
   return (
@@ -39,16 +39,7 @@ const Controls: React.FC<ControlsProps> = ({
           </button>
         )}
         
-        <button 
-          onClick={onStep}
-          disabled={!isPaused && isRunning}
-          className={`flex items-center gap-2 py-2 px-4 rounded-md transition-colors duration-200 
-                    ${!isPaused && isRunning 
-                      ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
-                      : 'bg-blue-600 hover:bg-blue-700 text-white'}`}
-        >
-          <SkipForward size={18} /> Passo
-        </button>
+       
         
         <button 
           onClick={onReset}

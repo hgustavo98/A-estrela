@@ -12,7 +12,7 @@ interface CellProps {
 }
 
 const cellIcons: Record<string, React.ReactNode> = {
-  'C': <PlayCircle size={20} />, // Início
+  'C': <PlayCircle size={20} />,
   'S': <Flag size={20} />,
   'B': <ShieldBan size={20} />,
   'A': <Shield size={20} />,
@@ -37,7 +37,7 @@ const Cell: React.FC<CellProps> = ({ cell, isCurrentPosition, isInPath, isVisite
       title={cellInfo.description}
     >
       <span className="flex items-center gap-1">
-        {isCurrentPosition ? <User size={22} /> : icon}
+        {isCurrentPosition ? <User className='rounded-full transition-all duration-1000' size={22} /> : icon}
       </span>
       <span className="absolute bottom-0 right-1 text-xs opacity-75">
         {row},{col}

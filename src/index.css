@@ -2,12 +2,5 @@
 @tailwind components;
 @tailwind utilities;
 
-/* tailwind safelist: garantir cyan sempre presente */
-/*
-  bg-cyan-500
-  text-cyan-500
-  border-cyan-500
-  from-cyan-500
-  to-cyan-500
-  via-cyan-500
-*/
+
+
