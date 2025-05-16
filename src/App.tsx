@@ -4,6 +4,8 @@ import Controls from './components/Controls';
 import Stats from './components/Stats';
 import Legend from './components/Legend';
 import { INITIAL_GRID, ANIMATION_SPEED } from './constants';
+import './index.css'; 
+
 
 // URL base do backend Flask
 const API_BASE = 'http://localhost:5000';
