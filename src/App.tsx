@@ -151,7 +151,7 @@ function App() {
   }, [isRunning, isPaused, pathFound, handleStep]);
 
   return (
-    <div className="min-h-screen bg-black text-white p-4 md:p-8">
+    <div className="min-h-screen bg-black text-white p-4 md:p-4">
       <div className="max-w-4xl mx-auto">
         <header className="mb-8 text-center">
           <h1 className="text-3xl md:text-4xl font-bold mb-2"> A-estrela</h1>
