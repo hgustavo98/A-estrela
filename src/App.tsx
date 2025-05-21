@@ -159,7 +159,7 @@ function App() {
             Observe como o algoritmo A* navega pelo grid para encontrar o caminho ideal
           </p>
         </header>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
           <div className="lg:col-span-2">
             <Grid 
               grid={grid}
