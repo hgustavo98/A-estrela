@@ -4,14 +4,21 @@ import Controls from './components/Controls';
 import Stats from './components/Stats';
 import Legend from './components/Legend';
 import { INITIAL_GRID, ANIMATION_SPEED } from './constants';
-import './index.css'; 
+import { CellType } from './types';
 
+import './index.css'; 
+import BlockTypeSelector from './components/BlockTypeSelector';
 
 // URL base do backend Flask
 const API_BASE = 'http://localhost:5000';
 
 function App() {
-  const [grid] = useState(INITIAL_GRID);
+  // Estado editável do grid
+  const [grid, setGrid] = useState(INITIAL_GRID.map(row => [...row]));
+  // Novo estado: modo edição
+  const [isEditMode, setIsEditMode] = useState(false);
+  // Novo estado: tipo de bloco selecionado
+  const [selectedBlockType, setSelectedBlockType] = useState<CellType>('C');
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [currentPosition, setCurrentPosition] = useState<[number, number] | null>(null);
@@ -30,6 +37,8 @@ function App() {
   const [pathFound, setPathFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const animationIntervalRef = useRef<number | null>(null);
+  // Estado para controlar se o mouse está pressionado (para edição do grid)
+  const [isMouseDown, setIsMouseDown] = useState(false);
 
   // Função para atualizar o estado do nó atual a partir da resposta do backend
   type NodeType = {
@@ -56,6 +65,16 @@ function App() {
     setStepsCount(prev => prev + 1);
   }, []);
 
+  // Atualizar célula do grid
+  const handleCellEdit = useCallback((row: number, col: number) => {
+    if (!isEditMode) return;
+    setGrid(prev => {
+      const newGrid = prev.map(r => [...r]);
+      newGrid[row][col] = selectedBlockType;
+      return newGrid;
+    });
+  }, [isEditMode, selectedBlockType]);
+
   const handleReset = useCallback(async () => {
     if (animationIntervalRef.current) {
       clearInterval(animationIntervalRef.current);
@@ -74,6 +93,7 @@ function App() {
     setStepsCount(0);
     setPathFound(false);
     setError(null);
+    setGrid(INITIAL_GRID.map(row => [...row]));
     try {
       const res = await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
       if (!res.ok) throw new Error('Servidor indisponível');
@@ -153,12 +173,23 @@ function App() {
   return (
     <div className="min-h-screen bg-black text-white p-4 md:p-4">
       <div className="max-w-4xl mx-auto">
-        <header className="mb-8 text-center">
+        <header className="mb-1 text-center">
           <h1 className="text-3xl md:text-4xl font-bold mb-2"> A-estrela</h1>
           <p className="text-gray-300">
             Observe como o algoritmo A* navega pelo grid para encontrar o caminho ideal
           </p>
         </header>
+        <div className="mb-2 flex flex-wrap gap-2 items-center justify-between">
+          <button
+            className={`py-2 px-4 rounded-md font-bold transition-colors duration-200 ${isEditMode ? 'bg-yellow-600' : 'bg-gray-700 hover:bg-gray-600'}`}
+            onClick={() => setIsEditMode(e => !e)}
+          >
+            {isEditMode ? 'Modo Execução' : 'Modo Edição'}
+          </button>
+          {isEditMode && (
+            <BlockTypeSelector selected={selectedBlockType} onSelect={setSelectedBlockType} />
+          )}
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
           <div className="lg:col-span-2">
             <Grid 
@@ -166,8 +197,12 @@ function App() {
               currentPosition={currentPosition}
               visitedPositions={visitedPositions}
               pathPositions={pathPositions}
+              isEditMode={isEditMode}
+              onCellEdit={handleCellEdit}
+              isMouseDown={isMouseDown}
+              setIsMouseDown={setIsMouseDown}
             />
-            <div className="mt-4">
+            <div className="mt-2">
               <Controls 
                 isRunning={isRunning}
                 isPaused={isPaused}
