@@ -71,8 +71,6 @@ def ler_grid_txt():
         grid.append([cell if cell else '_' for cell in linha.split('\t')])
     return grid
 
-tab_default = ler_grid_txt()
-
 def node_to_dict(node):
     return {
         'row': node.x,
@@ -112,7 +110,7 @@ def start():
     if data and 'grid' in data:
         tab = data['grid']
     else:
-        tab = copy.deepcopy(tab_default)
+        tab = ler_grid_txt()  # Só lê o arquivo se o front não enviar o grid
     pos_C = encontrar_posicao(tab, 'C')
     pos_S = encontrar_posicao(tab, 'S')
     pai = Node()
@@ -137,6 +135,7 @@ def start():
 
 @app.route('/api/step', methods=['POST'])
 def step():
+    # O grid utilizado aqui é sempre o que foi salvo no estado, enviado pelo front no /api/start
     state = load_state()
     if not state or state['status'] != 'running':
         return jsonify({'status': state['status'] if state else 'not_started'})
