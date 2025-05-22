@@ -68,12 +68,18 @@ function App() {
   // Atualizar célula do grid
   const handleCellEdit = useCallback((row: number, col: number) => {
     if (!isEditMode) return;
+    // Impede mais de um 'C' ou 'S' no grid
+    if (selectedBlockType === 'C' || selectedBlockType === 'S') {
+      // Se já existe um 'C' ou 'S' no grid, não permite adicionar outro
+      const exists = grid.some((r, rIdx) => r.some((cell, cIdx) => cell === selectedBlockType && (rIdx !== row || cIdx !== col)));
+      if (exists) return;
+    }
     setGrid(prev => {
       const newGrid = prev.map(r => [...r]);
       newGrid[row][col] = selectedBlockType;
       return newGrid;
     });
-  }, [isEditMode, selectedBlockType]);
+  }, [isEditMode, selectedBlockType, grid]);
 
   const handleReset = useCallback(async () => {
     if (animationIntervalRef.current) {
@@ -93,7 +99,7 @@ function App() {
     setStepsCount(0);
     setPathFound(false);
     setError(null);
-    setGrid(INITIAL_GRID.map(row => [...row]));
+    // Removido: setGrid(INITIAL_GRID.map(row => [...row]));
     try {
       const res = await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
       if (!res.ok) throw new Error('Servidor indisponível');
@@ -104,9 +110,28 @@ function App() {
   }, []);
 
   const handleStart = useCallback(async () => {
-    await handleReset();
+    // Não reseta o grid aqui, apenas o estado de execução e backend
+    if (animationIntervalRef.current) {
+      clearInterval(animationIntervalRef.current);
+      animationIntervalRef.current = null;
+    }
+    setIsRunning(false);
+    setIsPaused(false);
+    setCurrentPosition(null);
+    setVisitedPositions(new Set());
+    setPathPositions([]);
+    setCurrentNode({
+      position: null,
+      distanceTraveled: 0,
+      hasMagicFruit: false
+    });
+    setStepsCount(0);
+    setPathFound(false);
     setError(null);
     try {
+      const resReset = await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
+      if (!resReset.ok) throw new Error('Servidor indisponível');
+      await resReset.json();
       const res = await fetch(`${API_BASE}/api/start`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -123,7 +148,7 @@ function App() {
     } catch {
       setError('Não foi possível conectar ao servidor Python.');
     }
-  }, [handleReset, updateFromNode, grid]);
+  }, [updateFromNode, grid]);
 
   const handleStep = useCallback(async () => {
     if (!isRunning || pathFound) return;
@@ -204,11 +229,11 @@ function App() {
             />
             <div className="mt-2">
               <Controls 
-                isRunning={isRunning}
+                isRunning={isRunning && !isEditMode}
                 isPaused={isPaused}
-                onStart={handleStart}
-                onPause={handlePause}
-                onStep={handleStep}
+                onStart={!isEditMode ? handleStart : () => {}}
+                onPause={!isEditMode ? handlePause : () => {}}
+                onStep={!isEditMode ? handleStep : () => {}}
                 onReset={handleReset}
               />
             </div>
