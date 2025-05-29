@@ -6,7 +6,7 @@ import Legend from './components/Legend';
 import { INITIAL_GRID, ANIMATION_SPEED } from './constants';
 import { CellType } from './types';
 
-import './index.css'; 
+import './index.css';
 import BlockTypeSelector from './components/BlockTypeSelector';
 
 // URL base do backend Flask
@@ -28,24 +28,26 @@ function App() {
     position: [number, number] | null;
     distanceTraveled: number;
     hasMagicFruit: boolean;
+    estimatedTotalCost: number;
   }>({
     position: null,
     distanceTraveled: 0,
-    hasMagicFruit: false
+    hasMagicFruit: false,
+    estimatedTotalCost: 0
   });
   const [stepsCount, setStepsCount] = useState(0);
   const [pathFound, setPathFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const animationIntervalRef = useRef<number | null>(null);
-  // Estado para controlar se o mouse está pressionado (para edição do grid)
   const [isMouseDown, setIsMouseDown] = useState(false);
+  const [nodeFeMap, setNodeFeMap] = useState<Record<string, number>>({});
 
-  // Função para atualizar o estado do nó atual a partir da resposta do backend
   type NodeType = {
     row: number;
     col: number;
     distanceTraveled: number;
     hasMagicFruit: boolean;
+    estimatedTotalCost?: number;
     path?: [number, number][];
   };
 
@@ -60,17 +62,19 @@ function App() {
     setCurrentNode({
       position: [node.row, node.col],
       distanceTraveled: node.distanceTraveled,
-      hasMagicFruit: node.hasMagicFruit
+      hasMagicFruit: node.hasMagicFruit,
+      estimatedTotalCost: node.estimatedTotalCost ?? 0
     });
+    setNodeFeMap(prev => ({
+      ...prev,
+      [`${node.row},${node.col}`]: node.estimatedTotalCost ?? 0
+    }));
     setStepsCount(prev => prev + 1);
   }, []);
 
-  // Atualizar célula do grid
   const handleCellEdit = useCallback((row: number, col: number) => {
     if (!isEditMode) return;
-    // Impede mais de um 'C' ou 'S' no grid
     if (selectedBlockType === 'C' || selectedBlockType === 'S') {
-      // Se já existe um 'C' ou 'S' no grid, não permite adicionar outro
       const exists = grid.some((r, rIdx) => r.some((cell, cIdx) => cell === selectedBlockType && (rIdx !== row || cIdx !== col)));
       if (exists) return;
     }
@@ -94,12 +98,13 @@ function App() {
     setCurrentNode({
       position: null,
       distanceTraveled: 0,
-      hasMagicFruit: false
+      hasMagicFruit: false,
+      estimatedTotalCost: 0
     });
     setStepsCount(0);
     setPathFound(false);
     setError(null);
-    // Removido: setGrid(INITIAL_GRID.map(row => [...row]));
+    setNodeFeMap({});
     try {
       const res = await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
       if (!res.ok) throw new Error('Servidor indisponível');
@@ -110,7 +115,6 @@ function App() {
   }, []);
 
   const handleStart = useCallback(async () => {
-    // Não reseta o grid aqui, apenas o estado de execução e backend
     if (animationIntervalRef.current) {
       clearInterval(animationIntervalRef.current);
       animationIntervalRef.current = null;
@@ -123,11 +127,13 @@ function App() {
     setCurrentNode({
       position: null,
       distanceTraveled: 0,
-      hasMagicFruit: false
+      hasMagicFruit: false,
+      estimatedTotalCost: 0
     });
     setStepsCount(0);
     setPathFound(false);
     setError(null);
+    setNodeFeMap({});
     try {
       const resReset = await fetch(`${API_BASE}/api/reset`, { method: 'POST' });
       if (!resReset.ok) throw new Error('Servidor indisponível');
@@ -177,7 +183,6 @@ function App() {
     setIsPaused(true);
   }, []);
 
-  // Animação automática dos passos
   useEffect(() => {
     if (isRunning && !isPaused && !pathFound) {
       if (animationIntervalRef.current) {
@@ -217,7 +222,7 @@ function App() {
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-2">
           <div className="lg:col-span-2">
-            <Grid 
+            <Grid
               grid={grid}
               currentPosition={currentPosition}
               visitedPositions={visitedPositions}
@@ -226,20 +231,21 @@ function App() {
               onCellEdit={handleCellEdit}
               isMouseDown={isMouseDown}
               setIsMouseDown={setIsMouseDown}
+              nodeFeMap={nodeFeMap}
             />
             <div className="mt-2">
-              <Controls 
+              <Controls
                 isRunning={isRunning && !isEditMode}
                 isPaused={isPaused}
-                onStart={!isEditMode ? handleStart : () => {}}
-                onPause={!isEditMode ? handlePause : () => {}}
-                onStep={!isEditMode ? handleStep : () => {}}
+                onStart={!isEditMode ? handleStart : () => { }}
+                onPause={!isEditMode ? handlePause : () => { }}
+                onStep={!isEditMode ? handleStep : () => { }}
                 onReset={handleReset}
               />
             </div>
           </div>
           <div className="space-y-6">
-            <Stats 
+            <Stats
               currentNode={currentNode}
               stepsCount={stepsCount}
               pathFound={pathFound}
