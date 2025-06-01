@@ -144,7 +144,11 @@ def step():
     visitados = set(tuple(v) if isinstance(v, (list, tuple)) else v for v in state['visitados'])
     tab = state['tab']
     pos_S = state['pos_S']
-    movimentos = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+    # Agora inclui movimentos diagonais
+    movimentos = [
+        (-1, 0), (1, 0), (0, -1), (0, 1),      # ortogonais
+        (-1, -1), (-1, 1), (1, -1), (1, 1)     # diagonais
+    ]
     for dx, dy in movimentos:
         nx, ny = pai.x + dx, pai.y + dy
         if 0 <= nx < len(tab) and 0 <= ny < len(tab[0]):
@@ -174,7 +178,12 @@ def step():
             visitados.add(estado_id)
             filho.caminho = copy.deepcopy(pai.caminho)
             filho.caminho.append((pai.x, pai.y))
-            custo = 2 if celula == 'A' else 1
+            # Custo: 2 para 'A', 1 para ortogonal, 1.41 para diagonal
+            if dx != 0 and dy != 0:
+                base_cost = 1.41
+            else:
+                base_cost = 1
+            custo = 2 * base_cost if celula == 'A' else base_cost
             filho.distancia_percorrida = pai.distancia_percorrida + custo
             filho.fe = funcao_heuristica(
                 pai.distancia_percorrida, custo, nx, ny, pos_S)
