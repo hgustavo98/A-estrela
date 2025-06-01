@@ -40,7 +40,7 @@ function App() {
   const [error, setError] = useState<string | null>(null);
   const animationIntervalRef = useRef<number | null>(null);
   const [isMouseDown, setIsMouseDown] = useState(false);
-  const [nodeFeMap, setNodeFeMap] = useState<Record<string, number>>({});
+  const [, setNodeFeMap] = useState<Record<string, number>>({});
 
   type NodeType = {
     row: number;
@@ -231,7 +231,7 @@ function App() {
               onCellEdit={handleCellEdit}
               isMouseDown={isMouseDown}
               setIsMouseDown={setIsMouseDown}
-              nodeFeMap={nodeFeMap}
+             
             />
             <div className="mt-2">
               <Controls
