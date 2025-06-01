@@ -5,13 +5,3 @@ export interface ICell {
   row: number;
   col: number;
 }
-
-export interface IPathNode {
-  row: number;
-  col: number;
-  distanceTraveled: number;
-  hasMagicFruit: boolean;
-  usedMagicFruit: boolean;
-  estimatedTotalCost: number;
-  path: number[][];
-}

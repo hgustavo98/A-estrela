@@ -64,7 +64,6 @@ def ler_grid_txt():
         linhas = f.readlines()
     grid = []
     for linha in linhas:
-        # Remove comentários e linhas vazias
         linha = linha.strip()
         if not linha or linha.startswith('//'):
             continue
@@ -110,7 +109,7 @@ def start():
     if data and 'grid' in data:
         tab = data['grid']
     else:
-        tab = ler_grid_txt()  # Só lê o arquivo se o front não enviar o grid
+        tab = ler_grid_txt()
     pos_C = encontrar_posicao(tab, 'C')
     pos_S = encontrar_posicao(tab, 'S')
     pai = Node()
@@ -135,7 +134,6 @@ def start():
 
 @app.route('/api/step', methods=['POST'])
 def step():
-    # O grid utilizado aqui é sempre o que foi salvo no estado, enviado pelo front no /api/start
     state = load_state()
     if not state or state['status'] != 'running':
         return jsonify({'status': state['status'] if state else 'not_started'})
@@ -144,10 +142,9 @@ def step():
     visitados = set(tuple(v) if isinstance(v, (list, tuple)) else v for v in state['visitados'])
     tab = state['tab']
     pos_S = state['pos_S']
-    # Agora inclui movimentos diagonais
     movimentos = [
-        (-1, 0), (1, 0), (0, -1), (0, 1),      # ortogonais
-        (-1, -1), (-1, 1), (1, -1), (1, 1)     # diagonais
+        (-1, 0), (1, 0), (0, -1), (0, 1),
+        (-1, -1), (-1, 1), (1, -1), (1, 1)
     ]
     for dx, dy in movimentos:
         nx, ny = pai.x + dx, pai.y + dy
@@ -178,7 +175,6 @@ def step():
             visitados.add(estado_id)
             filho.caminho = copy.deepcopy(pai.caminho)
             filho.caminho.append((pai.x, pai.y))
-            # Custo: 2 para 'A', 1 para ortogonal, 1.41 para diagonal
             if dx != 0 and dy != 0:
                 base_cost = 1.41
             else:
